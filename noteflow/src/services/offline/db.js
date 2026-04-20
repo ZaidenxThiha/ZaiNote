@@ -1,0 +1,11 @@
+import Dexie from 'dexie'
+
+export const db = new Dexie('noteflow')
+
+db.version(1).stores({
+  notes: 'id, user_id, updated_at, is_pinned, pinned_at',
+  labels: 'id, user_id, name',
+  note_labels: '[note_id+label_id], note_id, label_id',
+  note_attachments: 'id, note_id',
+  syncQueue: '++id, type, table, record_id, created_at',
+})
