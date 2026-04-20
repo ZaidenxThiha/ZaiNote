@@ -11,6 +11,7 @@ import AuthCallbackPage from '@/features/auth/pages/AuthCallbackPage'
 import SharedNotesPage from '@/features/sharing/pages/SharedNotesPage'
 import SettingsPage from '@/features/preferences/pages/SettingsPage'
 import TrashPage from '@/pages/TrashPage'
+import ArchivePage from '@/pages/ArchivePage'
 import { useAuthStore } from '@/stores/authStore'
 import { usePreferencesStore } from '@/stores/preferencesStore'
 import { supabase } from '@/lib/supabase'
@@ -78,6 +79,7 @@ export default function App() {
           <Route path="notes/:id" element={<NoteEditorPage />} />
           <Route path="shared" element={<SharedNotesPage />} />
           <Route path="trash" element={<TrashPage />} />
+          <Route path="archive" element={<ArchivePage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 

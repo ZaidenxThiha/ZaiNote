@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Pin, Lock, Users, Trash2, Share2 } from 'lucide-react'
+import { Pin, Lock, Users, Trash2, Share2, Palette, Archive } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import * as Popover from '@radix-ui/react-popover'
 import { db } from '@/services/offline/db'
-import { togglePin } from '../api'
+import { togglePin, updateNote, archiveNote } from '../api'
 import { formatRelativeTime, stripHtml, getNoteColorStyle } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { ColorPicker } from './ColorPicker'
+import { toast } from 'sonner'
 
 export function NoteCard({ note, onDelete, onShare }) {
   const navigate = useNavigate()
   const [hovered, setHovered] = useState(false)
+  const [localColor, setLocalColor] = useState(note.color || '#ffffff')
   const isDark = document.documentElement.classList.contains('dark')
-  const colorStyle = getNoteColorStyle(note.color, isDark)
+  const colorStyle = getNoteColorStyle(localColor, isDark)
 
   const noteLabels = useLiveQuery(
     () => db.note_labels.where('note_id').equals(note.id).toArray(),
@@ -28,6 +32,17 @@ export function NoteCard({ note, onDelete, onShare }) {
   const handlePinClick = async (e) => {
     e.stopPropagation()
     await togglePin(note)
+  }
+
+  const handleColorChange = async (value) => {
+    setLocalColor(value)
+    await updateNote(note.id, { color: value })
+  }
+
+  const handleArchive = async (e) => {
+    e.stopPropagation()
+    await archiveNote(note.id)
+    toast.success('Note archived')
   }
 
   const hasPassword = !!note.password_hash
@@ -54,7 +69,6 @@ export function NoteCard({ note, onDelete, onShare }) {
       onMouseLeave={() => setHovered(false)}
       onClick={() => navigate(`/notes/${note.id}`)}
     >
-      {/* Pin button — top right, Google Keep style */}
       <button
         onClick={handlePinClick}
         className={cn(
@@ -73,16 +87,13 @@ export function NoteCard({ note, onDelete, onShare }) {
         />
       </button>
 
-      {/* Card content */}
       <div className="px-3 pt-3 pb-1">
-        {/* Title */}
         {note.title && (
           <h3 className="font-medium text-sm mb-1.5 pr-8 leading-snug" style={{ color: 'var(--text-primary)' }}>
             {note.title}
           </h3>
         )}
 
-        {/* Content preview */}
         {!hasPassword && preview && (
           <p className="text-sm line-clamp-6 leading-relaxed whitespace-pre-line" style={{ color: 'var(--text-secondary)' }}>
             {preview}
@@ -92,7 +103,6 @@ export function NoteCard({ note, onDelete, onShare }) {
           <p className="text-sm italic" style={{ color: 'var(--text-muted)' }}>🔒 Password protected</p>
         )}
 
-        {/* Labels */}
         {labelNames.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {labelNames.slice(0, 3).map(label => (
@@ -116,7 +126,6 @@ export function NoteCard({ note, onDelete, onShare }) {
         )}
       </div>
 
-      {/* Status icons row (lock / shared) */}
       {(hasPassword || isShared) && (
         <div className="flex items-center gap-1.5 px-3 pb-1 pt-0.5">
           {hasPassword && <Lock className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />}
@@ -124,7 +133,6 @@ export function NoteCard({ note, onDelete, onShare }) {
         </div>
       )}
 
-      {/* Hover toolbar — Google Keep style */}
       <div
         className={cn(
           'flex items-center gap-0.5 px-1.5 py-1 transition-opacity duration-150',
@@ -132,6 +140,36 @@ export function NoteCard({ note, onDelete, onShare }) {
         )}
         onClick={e => e.stopPropagation()}
       >
+        <button
+          onClick={handleArchive}
+          className="p-1.5 rounded-full hover:bg-black/10"
+          title="Archive"
+        >
+          <Archive className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
+        </button>
+
+        <Popover.Root>
+          <Popover.Trigger asChild>
+            <button
+              onClick={e => e.stopPropagation()}
+              className="p-1.5 rounded-full hover:bg-black/10"
+              title="Change color"
+            >
+              <Palette className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
+            </button>
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content
+              className="z-50 rounded-lg p-2 shadow-md"
+              style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+              sideOffset={8}
+              onClick={e => e.stopPropagation()}
+            >
+              <ColorPicker value={localColor} onChange={handleColorChange} />
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
+
         <button
           onClick={e => { e.stopPropagation(); onShare?.(note) }}
           className="p-1.5 rounded-full hover:bg-black/10"

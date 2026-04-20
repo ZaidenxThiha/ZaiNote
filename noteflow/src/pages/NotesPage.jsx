@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { NoteCard } from '@/features/notes/components/NoteCard'
 import { NoteListRow } from '@/features/notes/components/NoteListRow'
@@ -8,6 +8,7 @@ import { ShareDialog } from '@/features/sharing/components/ShareDialog'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { NoteCardSkeleton } from '@/components/feedback/Skeleton'
 import { LabelManager } from '@/features/labels/components/LabelManager'
+import { QuickNote } from '@/features/notes/components/QuickNote'
 import { useNotes } from '@/features/notes/hooks/useNotes'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
@@ -20,6 +21,7 @@ import { stripHtml } from '@/lib/utils'
 
 export default function NotesPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
   const { search = '', view = 'grid', activeLabel } = useOutletContext() || {}
   const debouncedSearch = useDebouncedValue(search, 300)
@@ -28,6 +30,9 @@ export default function NotesPage() {
   const [noteToDelete, setNoteToDelete] = useState(null)
   const [noteToShare, setNoteToShare] = useState(null)
   const [labelManagerOpen, setLabelManagerOpen] = useState(false)
+  const [sortBy, setSortBy] = useState('modified')
+
+  const isPinnedFilter = location.search.includes('filter=pinned')
 
   useKeyboardShortcuts({
     'cmd+n': () => handleNewNote(),
@@ -43,7 +48,6 @@ export default function NotesPage() {
   const filtered = useMemo(() => {
     let result = [...notes]
 
-    // Search filter
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase()
       result = result.filter(n =>
@@ -52,26 +56,42 @@ export default function NotesPage() {
       )
     }
 
-    // Label filter
     if (activeLabel) {
       result = result.filter(n =>
         n.note_labels?.some(nl => nl.label_id === activeLabel)
       )
     }
 
-    // Sort: pinned first (by pinned_at desc), then by updated_at desc
-    result.sort((a, b) => {
-      if (a.is_pinned && !b.is_pinned) return -1
-      if (!a.is_pinned && b.is_pinned) return 1
-      if (a.is_pinned && b.is_pinned) return new Date(b.pinned_at) - new Date(a.pinned_at)
-      return new Date(b.updated_at) - new Date(a.updated_at)
-    })
+    if (isPinnedFilter) {
+      result = result.filter(n => n.is_pinned)
+      if (sortBy === 'modified') {
+        result.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+      } else if (sortBy === 'created') {
+        result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      } else if (sortBy === 'title') {
+        result.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+      }
+      return result
+    }
 
-    return result
-  }, [notes, debouncedSearch, activeLabel])
+    const pinned = result.filter(n => n.is_pinned)
+    const others = result.filter(n => !n.is_pinned)
 
-  const pinned = filtered.filter(n => n.is_pinned)
-  const others = filtered.filter(n => !n.is_pinned)
+    pinned.sort((a, b) => new Date(b.pinned_at) - new Date(a.pinned_at))
+
+    if (sortBy === 'modified') {
+      others.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+    } else if (sortBy === 'created') {
+      others.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    } else if (sortBy === 'title') {
+      others.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+    }
+
+    return [...pinned, ...others]
+  }, [notes, debouncedSearch, activeLabel, sortBy, isPinnedFilter])
+
+  const pinned = isPinnedFilter ? filtered : filtered.filter(n => n.is_pinned)
+  const others = isPinnedFilter ? [] : filtered.filter(n => !n.is_pinned)
 
   if (loading) {
     return (
@@ -85,9 +105,19 @@ export default function NotesPage() {
 
   return (
     <div className="p-4 pb-20">
-      {/* Label manager button */}
+      <QuickNote />
+
       <div className="flex items-center justify-between mb-4">
-        <div />
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+          className="text-xs px-2 py-1.5 rounded-md border outline-none"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', backgroundColor: 'var(--bg-secondary)' }}
+        >
+          <option value="modified">Last modified</option>
+          <option value="created">Last created</option>
+          <option value="title">Title A-Z</option>
+        </select>
         <button
           onClick={() => setLabelManagerOpen(true)}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors hover:bg-muted"
@@ -159,7 +189,6 @@ export default function NotesPage() {
         </>
       )}
 
-      {/* Delete dialog */}
       {noteToDelete && (
         <DeleteNoteDialog
           note={noteToDelete}
@@ -169,7 +198,6 @@ export default function NotesPage() {
         />
       )}
 
-      {/* Share dialog */}
       {noteToShare && (
         <ShareDialog
           note={noteToShare}
@@ -178,7 +206,6 @@ export default function NotesPage() {
         />
       )}
 
-      {/* Label Manager Dialog */}
       <Dialog.Root open={labelManagerOpen} onOpenChange={setLabelManagerOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} />

@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Menu, Search, Grid2x2, List, Plus, X, Bell, LogOut, Settings, User } from 'lucide-react'
+import { Menu, Search, Grid2x2, List, Plus, X, Bell, LogOut, Settings, User, Sun, Moon } from 'lucide-react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/useAuth'
+import { usePreferencesStore } from '@/stores/preferencesStore'
 import { cn } from '@/lib/utils'
 
 export function Header({ search, setSearch, view, setView, onMenuClick }) {
   const navigate = useNavigate()
   const { user, profile, signOut } = useAuth()
   const [searchOpen, setSearchOpen] = useState(false)
+  const { theme, setTheme } = usePreferencesStore()
 
   const initials = profile?.display_name?.slice(0, 2).toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'
 
@@ -78,6 +80,18 @@ export function Header({ search, setSearch, view, setView, onMenuClick }) {
             <List className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Dark mode toggle */}
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="hidden sm:flex p-2 rounded-md hover:bg-muted"
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark'
+            ? <Sun className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
+            : <Moon className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
+          }
+        </button>
 
         {/* New note button — desktop */}
         <button

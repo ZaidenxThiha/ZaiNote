@@ -28,7 +28,7 @@ export function useNotes() {
   }, [refresh])
 
   const notes = useLiveQuery(
-    () => user ? db.notes.where('user_id').equals(user.id).filter(n => !n.deleted_at).toArray() : [],
+    () => user ? db.notes.where('user_id').equals(user.id).filter(n => !n.deleted_at && !n.is_archived).toArray() : [],
     [user?.id],
     []
   )

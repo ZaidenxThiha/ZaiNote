@@ -5,61 +5,92 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Pin, Lock, Share2, Palette, Paperclip, Trash2, ArrowLeft, Bold, Italic, List, Heading2 } from 'lucide-react'
+import { Pin, Lock, Share2, Palette, Paperclip, Trash2, ArrowLeft, Bold, Italic, List, Heading2, Strikethrough, ListOrdered, Code, Copy, Archive } from 'lucide-react'
 import * as Popover from '@radix-ui/react-popover'
 import { SaveIndicator } from '@/components/feedback/SaveIndicator'
 import { ColorPicker } from './ColorPicker'
 import { AttachmentUploader } from './AttachmentUploader'
 import { useAutoSave } from '../hooks/useAutoSave'
-import { togglePin } from '../api'
-import { getNoteColorStyle } from '@/lib/utils'
+import { togglePin, duplicateNote, archiveNote } from '../api'
+import { getNoteColorStyle, stripHtml } from '@/lib/utils'
+import { toast } from 'sonner'
 
 export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onUpdate }) {
   const navigate = useNavigate()
   const [title, setTitle] = useState(note?.title || '')
+  const [content, setContent] = useState(note?.content || '')
   const [color, setColor] = useState(note?.color || '#ffffff')
   const [attachments, setAttachments] = useState(note?.note_attachments || [])
   const isDark = document.documentElement.classList.contains('dark')
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+      }),
       Image,
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: 'Start writing...' }),
     ],
-    content: note?.content || '',
+    content,
     onUpdate: ({ editor }) => {
-      // Handled by auto-save
+      setContent(editor.getHTML())
     },
   })
 
   const saveStatus = useAutoSave(
     note?.id,
-    { title, content: editor?.getHTML() || '', color },
+    { title, content, color },
     800
   )
 
-  // Keep editor in sync with external note changes
   useEffect(() => {
-    if (note && editor && note.content !== editor.getHTML()) {
-      editor.commands.setContent(note.content || '', false)
-    }
+    if (!note) return
+    setTitle(note.title || '')
+    setContent(note.content || '')
+    setColor(note.color || '#ffffff')
+    setAttachments(note.note_attachments || [])
   }, [note?.id])
 
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content || '', false)
+    }
+  }, [content, editor])
+
   const colorStyle = getNoteColorStyle(color, isDark)
+
+  const wordCount = content ? stripHtml(content).trim().split(/\s+/).filter(Boolean).length : 0
+
+  const handleDuplicate = async () => {
+    try {
+      const newNote = await duplicateNote(note)
+      toast.success('Note duplicated')
+      navigate(`/notes/${newNote.id}`)
+    } catch {
+      toast.error('Failed to duplicate note')
+    }
+  }
+
+  const handleArchive = async () => {
+    try {
+      await archiveNote(note.id)
+      toast.success('Note archived')
+      navigate(-1)
+    } catch {
+      toast.error('Failed to archive note')
+    }
+  }
 
   if (!note) return null
 
   return (
     <div className="flex flex-col h-full" style={{ ...colorStyle, backgroundColor: colorStyle.backgroundColor || 'var(--bg-primary)' }}>
-      {/* Toolbar */}
       <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: 'var(--border)', backgroundColor: colorStyle.backgroundColor || 'var(--bg-secondary)' }}>
         <button onClick={() => navigate(-1)} className="p-1.5 rounded-md hover:bg-black/10" title="Back">
           <ArrowLeft className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
         </button>
 
-        {/* Editor formatting */}
         {editor && (
           <div className="flex items-center gap-0.5 border rounded-md px-1" style={{ borderColor: 'var(--border)' }}>
             <button
@@ -90,6 +121,27 @@ export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onU
             >
               <Heading2 className="h-3.5 w-3.5" style={{ color: 'var(--text-primary)' }} />
             </button>
+            <button
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              className={`p-1.5 rounded text-sm ${editor.isActive('strike') ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}
+              title="Strikethrough"
+            >
+              <Strikethrough className="h-3.5 w-3.5" style={{ color: 'var(--text-primary)' }} />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              className={`p-1.5 rounded text-sm ${editor.isActive('orderedList') ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}
+              title="Ordered list"
+            >
+              <ListOrdered className="h-3.5 w-3.5" style={{ color: 'var(--text-primary)' }} />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().toggleCode().run()}
+              className={`p-1.5 rounded text-sm ${editor.isActive('code') ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}
+              title="Code"
+            >
+              <Code className="h-3.5 w-3.5" style={{ color: 'var(--text-primary)' }} />
+            </button>
           </div>
         )}
 
@@ -97,7 +149,6 @@ export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onU
 
         <SaveIndicator status={saveStatus} />
 
-        {/* Action buttons */}
         <div className="flex items-center gap-1">
           <button
             onClick={() => togglePin(note)}
@@ -120,6 +171,22 @@ export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onU
             </Popover.Portal>
           </Popover.Root>
 
+          <button
+            onClick={handleDuplicate}
+            className="p-1.5 rounded-md hover:bg-black/10"
+            title="Duplicate note"
+          >
+            <Copy className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />
+          </button>
+
+          <button
+            onClick={handleArchive}
+            className="p-1.5 rounded-md hover:bg-black/10"
+            title="Archive note"
+          >
+            <Archive className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />
+          </button>
+
           <button className="p-1.5 rounded-md hover:bg-black/10" title="Lock" onClick={onLockClick}>
             <Lock className="h-4 w-4" style={{ color: note.password_hash ? 'var(--accent)' : 'var(--text-muted)' }} />
           </button>
@@ -132,7 +199,6 @@ export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onU
         </div>
       </div>
 
-      {/* Editor area */}
       <div className="flex-1 overflow-y-auto px-6 py-6 max-w-3xl mx-auto w-full">
         <input
           type="text"
@@ -144,7 +210,12 @@ export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onU
         />
         <EditorContent editor={editor} className="prose-sm max-w-none" />
 
-        {/* Attachments */}
+        <div className="flex justify-end mt-2">
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            {wordCount} word{wordCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+
         {attachments.length > 0 || true ? (
           <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
             <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Attachments</p>

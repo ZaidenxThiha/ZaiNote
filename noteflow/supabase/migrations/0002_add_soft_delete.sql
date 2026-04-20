@@ -8,3 +8,7 @@ CREATE INDEX IF NOT EXISTS notes_deleted_at_idx ON notes (user_id, deleted_at) W
 -- (The existing policy allows users to see their own notes; we filter deleted_at in the app layer)
 -- No RLS change needed — the app always passes .is('deleted_at', null) for normal queries
 -- and .not('deleted_at', 'is', null) for trash queries.
+
+-- Add archive support
+ALTER TABLE notes ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT FALSE NOT NULL;
+CREATE INDEX IF NOT EXISTS notes_archived_idx ON notes (user_id, is_archived) WHERE is_archived = TRUE;
