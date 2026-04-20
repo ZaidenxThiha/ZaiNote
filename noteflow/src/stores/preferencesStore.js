@@ -38,7 +38,7 @@ export const usePreferencesStore = create(
         applyFontSize(profile.font_size || 'medium')
       },
     }),
-    { name: 'noteflow-prefs' }
+    { name: 'zainote-prefs' }
   )
 )
 

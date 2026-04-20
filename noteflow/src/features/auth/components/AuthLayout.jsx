@@ -9,13 +9,13 @@ export function AuthLayout({ children, title, subtitle }) {
           <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
             <StickyNote className="h-5 w-5 text-white" />
           </div>
-          <span className="text-white font-semibold text-lg">NoteFlow</span>
+          <span className="text-white font-semibold text-lg">ZaiNote</span>
         </div>
         <div>
           <h1 className="text-4xl font-bold text-white mb-4 text-balance">Capture every idea, wherever you are.</h1>
           <p className="text-white/70 text-lg">Offline-first notes with real-time collaboration.</p>
         </div>
-        <p className="text-white/40 text-sm">© 2025 NoteFlow</p>
+        <p className="text-white/40 text-sm">© 2025 ZaiNote</p>
       </div>
 
       {/* Form panel */}
@@ -24,7 +24,7 @@ export function AuthLayout({ children, title, subtitle }) {
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--accent)' }}>
             <StickyNote className="h-4 w-4 text-white" />
           </div>
-          <span className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>NoteFlow</span>
+          <span className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>ZaiNote</span>
         </div>
         <div className="max-w-sm w-full mx-auto">
           <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{title}</h2>

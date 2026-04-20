@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icons/*.png'],
       manifest: {
-        name: 'NoteFlow',
-        short_name: 'NoteFlow',
-        description: 'A modern note management app',
+        name: 'ZaiNote',
+        short_name: 'ZaiNote',
+        description: 'ZaiNote — your offline-first note app',
         theme_color: '#6366f1',
         background_color: '#fafaf9',
         display: 'standalone',

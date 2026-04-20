@@ -1,6 +1,6 @@
 import Dexie from 'dexie'
 
-export const db = new Dexie('noteflow')
+export const db = new Dexie('zainote')
 
 db.version(1).stores({
   notes: 'id, user_id, updated_at, is_pinned, pinned_at',

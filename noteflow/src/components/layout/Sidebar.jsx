@@ -37,7 +37,7 @@ export function Sidebar({ open, onClose, activeLabel, setActiveLabel }) {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--accent)' }}>
               <StickyNote className="h-4 w-4 text-white" />
             </div>
-            <span className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>NoteFlow</span>
+            <span className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>ZaiNote</span>
           </Link>
           <button className="lg:hidden p-1 rounded-md hover:bg-muted" onClick={onClose}>
             <X className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />
