@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Pin, Lock, Users, Trash2, Share2, Tag } from 'lucide-react'
+import { Pin, Lock, Users, Trash2, Share2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/services/offline/db'
-import { togglePin, deleteNote } from '../api'
+import { togglePin } from '../api'
 import { formatRelativeTime, stripHtml, getNoteColorStyle } from '@/lib/utils'
-import { usePreferencesStore } from '@/stores/preferencesStore'
 import { cn } from '@/lib/utils'
 
 export function NoteCard({ note, onDelete, onShare }) {
@@ -33,52 +32,59 @@ export function NoteCard({ note, onDelete, onShare }) {
 
   const hasPassword = !!note.password_hash
   const isShared = note.note_shares?.length > 0 || note.shareId
+  const preview = stripHtml(note.content).slice(0, 300)
 
-  const preview = stripHtml(note.content).slice(0, 200)
+  const bg = colorStyle.backgroundColor || 'var(--bg-secondary)'
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -2 }}
+      exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.15 }}
-      className={cn(
-        'rounded-lg cursor-pointer select-none break-inside-avoid overflow-hidden',
-        'transition-shadow duration-150 group',
-      )}
+      className="rounded-2xl cursor-pointer select-none break-inside-avoid overflow-hidden relative"
       style={{
+        backgroundColor: bg,
         border: `1px solid ${hovered ? 'var(--border-strong)' : 'var(--border)'}`,
-        boxShadow: hovered ? '0 4px 6px -1px rgb(0 0 0 / 0.08)' : '0 1px 2px 0 rgb(0 0 0 / 0.04)',
-        ...colorStyle,
-        backgroundColor: colorStyle.backgroundColor || 'var(--bg-secondary)',
+        boxShadow: hovered ? '0 4px 12px rgb(0 0 0 / 0.1)' : 'none',
+        transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => navigate(`/notes/${note.id}`)}
     >
-      {/* Card content */}
-      <div className="p-3">
-        {/* Status icons row */}
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <div className="flex items-center gap-1">
-            {note.is_pinned && <Pin className="h-3 w-3" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />}
-            {hasPassword && <Lock className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />}
-            {isShared && <Users className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />}
-          </div>
-        </div>
+      {/* Pin button — top right, Google Keep style */}
+      <button
+        onClick={handlePinClick}
+        className={cn(
+          'absolute top-2 right-2 p-1.5 rounded-full transition-all duration-150',
+          (hovered || note.is_pinned) ? 'opacity-100' : 'opacity-0',
+        )}
+        style={{ backgroundColor: hovered ? 'rgba(0,0,0,0.08)' : 'transparent' }}
+        title={note.is_pinned ? 'Unpin note' : 'Pin note'}
+      >
+        <Pin
+          className="h-4 w-4"
+          style={{
+            color: note.is_pinned ? 'var(--text-primary)' : 'var(--text-secondary)',
+            fill: note.is_pinned ? 'var(--text-primary)' : 'none',
+          }}
+        />
+      </button>
 
+      {/* Card content */}
+      <div className="px-3 pt-3 pb-1">
         {/* Title */}
         {note.title && (
-          <h3 className="font-semibold text-sm mb-1 line-clamp-2" style={{ color: 'var(--text-primary)' }}>
+          <h3 className="font-medium text-sm mb-1.5 pr-8 leading-snug" style={{ color: 'var(--text-primary)' }}>
             {note.title}
           </h3>
         )}
 
         {/* Content preview */}
-        {preview && !hasPassword && (
-          <p className="text-sm line-clamp-4 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+        {!hasPassword && preview && (
+          <p className="text-sm line-clamp-6 leading-relaxed whitespace-pre-line" style={{ color: 'var(--text-secondary)' }}>
             {preview}
           </p>
         )}
@@ -86,61 +92,59 @@ export function NoteCard({ note, onDelete, onShare }) {
           <p className="text-sm italic" style={{ color: 'var(--text-muted)' }}>🔒 Password protected</p>
         )}
 
-        {/* Label chips */}
+        {/* Labels */}
         {labelNames.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {labelNames.slice(0, 2).map(label => (
+            {labelNames.slice(0, 3).map(label => (
               <span
                 key={label.id}
                 className="inline-flex items-center px-2 py-0.5 rounded-full text-xs"
-                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                style={{ backgroundColor: 'rgba(0,0,0,0.08)', color: 'var(--text-secondary)' }}
               >
                 {label.name}
               </span>
             ))}
-            {labelNames.length > 2 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs" style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)' }}>
-                +{labelNames.length - 2}
+            {labelNames.length > 3 && (
+              <span
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs"
+                style={{ backgroundColor: 'rgba(0,0,0,0.08)', color: 'var(--text-muted)' }}
+              >
+                +{labelNames.length - 3}
               </span>
             )}
           </div>
         )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {formatRelativeTime(note.updated_at)}
-          </span>
-        </div>
       </div>
 
-      {/* Hover actions */}
+      {/* Status icons row (lock / shared) */}
+      {(hasPassword || isShared) && (
+        <div className="flex items-center gap-1.5 px-3 pb-1 pt-0.5">
+          {hasPassword && <Lock className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />}
+          {isShared && <Users className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />}
+        </div>
+      )}
+
+      {/* Hover toolbar — Google Keep style */}
       <div
         className={cn(
-          'flex items-center gap-1 px-2 pb-2 transition-opacity duration-150',
-          hovered ? 'opacity-100' : 'opacity-0'
+          'flex items-center gap-0.5 px-1.5 py-1 transition-opacity duration-150',
+          hovered ? 'opacity-100' : 'opacity-0 pointer-events-none',
         )}
+        onClick={e => e.stopPropagation()}
       >
         <button
-          onClick={handlePinClick}
-          className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
-          title={note.is_pinned ? 'Unpin' : 'Pin'}
-        >
-          <Pin className={cn('h-3.5 w-3.5', note.is_pinned ? '' : '')} style={{ color: note.is_pinned ? 'var(--accent)' : 'var(--text-muted)' }} />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onShare?.(note) }}
-          className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10"
+          onClick={e => { e.stopPropagation(); onShare?.(note) }}
+          className="p-1.5 rounded-full hover:bg-black/10"
           title="Share"
         >
-          <Share2 className="h-3.5 w-3.5" style={{ color: 'var(--text-muted)' }} />
+          <Share2 className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
         </button>
         <button
-          onClick={(e) => { e.stopPropagation(); onDelete?.(note) }}
-          className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30"
-          title="Delete"
+          onClick={e => { e.stopPropagation(); onDelete?.(note) }}
+          className="p-1.5 rounded-full hover:bg-black/10"
+          title="Move to Trash"
         >
-          <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--danger)' }} />
+          <Trash2 className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
         </button>
       </div>
     </motion.div>

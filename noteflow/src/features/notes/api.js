@@ -8,11 +8,23 @@ export async function fetchNotes(userId) {
     .from('notes')
     .select('*, note_labels(label_id), note_attachments(*)')
     .eq('user_id', userId)
+    .is('deleted_at', null)
     .order('is_pinned', { ascending: false })
     .order('pinned_at', { ascending: false })
     .order('updated_at', { ascending: false })
   if (error) throw error
-  // cache in Dexie
+  if (data) await db.notes.bulkPut(data)
+  return data
+}
+
+export async function fetchTrashedNotes(userId) {
+  const { data, error } = await supabase
+    .from('notes')
+    .select('*, note_labels(label_id), note_attachments(*)')
+    .eq('user_id', userId)
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false })
+  if (error) throw error
   if (data) await db.notes.bulkPut(data)
   return data
 }
@@ -43,7 +55,6 @@ export async function createNote(userId, defaults = {}) {
 export async function updateNote(id, updates) {
   const { data, error } = await supabase.from('notes').update(updates).eq('id', id).select().single()
   if (error) {
-    // Offline — queue sync
     const local = await db.notes.get(id)
     if (local) {
       await db.notes.put({ ...local, ...updates })
@@ -55,10 +66,35 @@ export async function updateNote(id, updates) {
   return data
 }
 
-export async function deleteNote(id) {
+export async function trashNote(id) {
+  const now = new Date().toISOString()
+  const { data, error } = await supabase.from('notes').update({ deleted_at: now }).eq('id', id).select().single()
+  if (error) {
+    await queueSync('upsert', 'notes', { id, deleted_at: now })
+  }
+  const local = await db.notes.get(id)
+  if (local) await db.notes.put({ ...local, deleted_at: now })
+  return data || { id, deleted_at: now }
+}
+
+export async function restoreNote(id) {
+  const { data, error } = await supabase.from('notes').update({ deleted_at: null }).eq('id', id).select().single()
+  if (error) {
+    await queueSync('upsert', 'notes', { id, deleted_at: null })
+  }
+  const local = await db.notes.get(id)
+  if (local) await db.notes.put({ ...local, deleted_at: null })
+  return data || { id, deleted_at: null }
+}
+
+export async function permanentDeleteNote(id) {
   const { error } = await supabase.from('notes').delete().eq('id', id)
   if (error) await queueSync('delete', 'notes', { id })
   await db.notes.delete(id)
+}
+
+export async function deleteNote(id) {
+  return trashNote(id)
 }
 
 export async function togglePin(note) {

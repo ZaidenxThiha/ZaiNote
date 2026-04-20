@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { StickyNote, Pin, Share2, Settings, Tag, Plus, ChevronDown, ChevronRight, X } from 'lucide-react'
+import { StickyNote, Pin, Share2, Settings, Tag, Plus, ChevronDown, ChevronRight, X, Trash2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/services/offline/db'
 import { useAuth } from '@/hooks/useAuth'
@@ -20,6 +20,7 @@ export function Sidebar({ open, onClose, activeLabel, setActiveLabel }) {
     { to: '/', label: 'All Notes', icon: StickyNote },
     { to: '/?filter=pinned', label: 'Pinned', icon: Pin },
     { to: '/shared', label: 'Shared with me', icon: Share2 },
+    { to: '/trash', label: 'Trash', icon: Trash2 },
   ]
 
   return (
