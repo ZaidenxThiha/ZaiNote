@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useOutletContext, useLocation } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { NoteCard } from '@/features/notes/components/NoteCard'
 import { NoteListRow } from '@/features/notes/components/NoteListRow'
 import { DeleteNoteDialog } from '@/features/notes/dialogs/DeleteNoteDialog'

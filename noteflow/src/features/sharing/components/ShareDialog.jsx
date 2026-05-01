@@ -19,7 +19,7 @@ export function ShareDialog({ note, open, onOpenChange }) {
 
   useEffect(() => {
     if (open && note) fetchNoteShares(note.id).then(setShares)
-  }, [open, note?.id])
+  }, [open, note])
 
   const searchUser = async () => {
     if (!email) return

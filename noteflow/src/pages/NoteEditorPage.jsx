@@ -7,7 +7,7 @@ import { PasswordLockDialog } from '@/features/notes/dialogs/PasswordLockDialog'
 import { ShareDialog } from '@/features/sharing/components/ShareDialog'
 import { LabelPicker } from '@/features/labels/components/LabelPicker'
 import { useNote } from '@/features/notes/hooks/useNotes'
-import { createNote, fetchNotes } from '@/features/notes/api'
+import { createNote } from '@/features/notes/api'
 import { useUnlockedNotesStore } from '@/stores/unlockedNotesStore'
 import { useAuth } from '@/hooks/useAuth'
 import { NoteCardSkeleton } from '@/components/feedback/Skeleton'
@@ -21,7 +21,6 @@ export default function NoteEditorPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const isUnlocked = useUnlockedNotesStore(s => s.isUnlocked)
-  const [unlockOpen, setUnlockOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [lockOpen, setLockOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
@@ -35,7 +34,7 @@ export default function NoteEditorPage() {
         setInitializing(false)
       })
     }
-  }, [id, user])
+  }, [id, navigate, user])
 
   // Fetch from server if not in Dexie yet
   useEffect(() => {
@@ -77,6 +76,7 @@ export default function NoteEditorPage() {
     <div className="h-[calc(100vh-3.5rem)] flex flex-col lg:flex-row">
       <div className="flex-1 min-w-0 h-full overflow-hidden">
         <NoteEditor
+          key={note.id}
           note={note}
           onLockClick={() => setLockOpen(true)}
           onShareClick={() => setShareOpen(true)}

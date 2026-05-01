@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/services/offline/db'
-import { fetchNotes, fetchSharedNotes } from '../api'
+import { fetchNotes } from '../api'
 import { useAuth } from '@/hooks/useAuth'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 
@@ -24,7 +24,11 @@ export function useNotes() {
   }, [user, online])
 
   useEffect(() => {
-    refresh().then(() => setLoading(false))
+    const timeoutId = setTimeout(() => {
+      void refresh()
+    }, 0)
+
+    return () => clearTimeout(timeoutId)
   }, [refresh])
 
   const notes = useLiveQuery(

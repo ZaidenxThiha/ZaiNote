@@ -64,7 +64,7 @@ export default function App() {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [applyAll, fetchProfile, setSession, syncFromProfile])
 
   return (
     <BrowserRouter>

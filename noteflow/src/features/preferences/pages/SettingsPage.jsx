@@ -16,12 +16,11 @@ import { updatePassword } from '@/features/auth/api'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
-  const { user, profile, setProfile, fetchProfile } = useAuth()
+  const { user, profile, fetchProfile } = useAuth()
   const prefs = usePreferencesStore()
 
   const [displayName, setDisplayName] = useState(profile?.display_name || '')
   const [savingProfile, setSavingProfile] = useState(false)
-  const [currentPw, setCurrentPw] = useState('')
   const [newPw, setNewPw] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
   const [changingPw, setChangingPw] = useState(false)
@@ -57,7 +56,7 @@ export default function SettingsPage() {
     setChangingPw(false)
     if (error) { toast.error(error.message); return }
     toast.success('Password changed')
-    setCurrentPw(''); setNewPw(''); setConfirmPw('')
+    setNewPw(''); setConfirmPw('')
   }
 
   const handlePrefsSave = async () => {

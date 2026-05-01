@@ -1,3 +1,4 @@
+/* global process */
 /**
  * Run once to create a test account + sample notes in your Supabase project.
  * Usage: node scripts/seed-test-account.js
@@ -28,7 +29,7 @@ async function seed() {
   console.log('Creating test account...')
 
   // Sign up
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+  const { error: signUpError } = await supabase.auth.signUp({
     email: TEST_EMAIL,
     password: TEST_PASSWORD,
     options: { data: { display_name: TEST_NAME } },

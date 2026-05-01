@@ -1,5 +1,6 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { StickyNote, Pin, Share2, Settings, Tag, Plus, ChevronDown, ChevronRight, X, Trash2, Archive } from 'lucide-react'
+import { createElement } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { StickyNote, Pin, Share2, Settings, Tag, X, Trash2, Archive } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/services/offline/db'
 import { useAuth } from '@/hooks/useAuth'
@@ -7,7 +8,6 @@ import { cn } from '@/lib/utils'
 
 export function Sidebar({ open, onClose, activeLabel, setActiveLabel }) {
   const location = useLocation()
-  const navigate = useNavigate()
   const { user } = useAuth()
 
   const labels = useLiveQuery(
@@ -71,7 +71,7 @@ export function Sidebar({ open, onClose, activeLabel, setActiveLabel }) {
                   : { color: 'var(--text-secondary)' }
                 }
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                {createElement(Icon, { className: 'h-4 w-4 shrink-0' })}
                 {label}
               </Link>
             )

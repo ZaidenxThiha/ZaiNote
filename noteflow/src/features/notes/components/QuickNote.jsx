@@ -1,17 +1,17 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { PenLine } from 'lucide-react'
 import { createNote } from '@/features/notes/api'
 import { useAuth } from '@/hooks/useAuth'
 import { updateNote } from '@/features/notes/api'
 
 export function QuickNote() {
-  const navigate = useNavigate()
   const { user } = useAuth()
   const [expanded, setExpanded] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [creating, setCreating] = useState(false)
   const containerRef = useRef(null)
+  const creatingRef = useRef(false)
 
   const handleExpand = () => {
     setExpanded(true)
@@ -24,7 +24,9 @@ export function QuickNote() {
   }
 
   const handleDone = async () => {
-    if (!user) return
+    if (!user || creatingRef.current) return
+    creatingRef.current = true
+    setCreating(true)
     try {
       const note = await createNote(user.id)
       if (title || content) {
@@ -33,9 +35,11 @@ export function QuickNote() {
       setExpanded(false)
       setTitle('')
       setContent('')
-      navigate(`/notes/${note.id}`)
     } catch {
       handleCancel()
+    } finally {
+      creatingRef.current = false
+      setCreating(false)
     }
   }
 
@@ -90,6 +94,7 @@ export function QuickNote() {
         <div className="flex items-center justify-end gap-2 px-3 py-2">
           <button
             onClick={handleCancel}
+            disabled={creating}
             className="px-3 py-1.5 rounded-md text-xs font-medium hover:bg-black/10 transition-colors"
             style={{ color: 'var(--text-secondary)' }}
           >
@@ -97,10 +102,11 @@ export function QuickNote() {
           </button>
           <button
             onClick={handleDone}
+            disabled={creating}
             className="px-3 py-1.5 rounded-md text-xs font-medium text-white transition-colors"
-            style={{ backgroundColor: 'var(--accent)' }}
+            style={{ backgroundColor: 'var(--accent)', opacity: creating ? 0.7 : 1 }}
           >
-            Done
+            {creating ? 'Creating...' : 'Done'}
           </button>
         </div>
       </div>

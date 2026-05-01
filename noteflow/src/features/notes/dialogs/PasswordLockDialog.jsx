@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordStrengthMeter } from '@/features/auth/components/PasswordStrengthMeter'
-import { setNotePassword, removeNotePassword, updateNote, verifyNotePassword } from '../api'
+import { setNotePassword, removeNotePassword, verifyNotePassword } from '../api'
 import { toast } from 'sonner'
 
 export function PasswordLockDialog({ note, open, onOpenChange, onSuccess }) {

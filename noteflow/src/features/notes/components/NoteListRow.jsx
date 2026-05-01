@@ -7,6 +7,7 @@ import { togglePin } from '../api'
 import { formatRelativeTime, stripHtml, getNoteColorStyle } from '@/lib/utils'
 
 export function NoteListRow({ note, onDelete, onShare }) {
+  const MotionDiv = motion.div
   const navigate = useNavigate()
   const isDark = document.documentElement.classList.contains('dark')
   const colorStyle = getNoteColorStyle(note.color, isDark)
@@ -21,7 +22,7 @@ export function NoteListRow({ note, onDelete, onShare }) {
   const preview = stripHtml(note.content).slice(0, 120)
 
   return (
-    <motion.div
+    <MotionDiv
       layout
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -69,6 +70,6 @@ export function NoteListRow({ note, onDelete, onShare }) {
           <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--danger)' }} />
         </button>
       </div>
-    </motion.div>
+    </MotionDiv>
   )
 }

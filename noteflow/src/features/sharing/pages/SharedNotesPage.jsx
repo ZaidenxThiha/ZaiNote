@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { fetchSharedNotes } from '@/features/notes/api'
 import { NoteCard } from '@/features/notes/components/NoteCard'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { useAuth } from '@/hooks/useAuth'
-import { Share2 } from 'lucide-react'
 
 export default function SharedNotesPage() {
-  const navigate = useNavigate()
   const { user } = useAuth()
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)

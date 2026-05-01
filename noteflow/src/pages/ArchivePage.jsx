@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { Archive, RotateCcw, Trash2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/services/offline/db'
@@ -87,6 +87,7 @@ export default function ArchivePage() {
     try {
       await fetchArchivedNotes(user.id)
     } catch {
+      // Show cached Dexie data if the refresh fails.
     }
   }, [user, online])
 

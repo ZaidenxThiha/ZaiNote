@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -38,8 +38,8 @@ export default function RegisterPage() {
   const fetchProfile = useAuthStore(s => s.fetchProfile)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({ resolver: zodResolver(schema) })
-  const password = watch('password', '')
+  const { control, register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(schema) })
+  const password = useWatch({ control, name: 'password', defaultValue: '' })
 
   const handleGoogle = async () => {
     setGoogleLoading(true)

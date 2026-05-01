@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Pin, Lock, Share2, Palette, Paperclip, Trash2, ArrowLeft, Bold, Italic, List, Heading2, Strikethrough, ListOrdered, Code, Copy, Archive } from 'lucide-react'
+import { Pin, Lock, Share2, Palette, Trash2, ArrowLeft, Bold, Italic, List, Heading2, Strikethrough, ListOrdered, Code, Copy, Archive } from 'lucide-react'
 import * as Popover from '@radix-ui/react-popover'
 import { SaveIndicator } from '@/components/feedback/SaveIndicator'
 import { ColorPicker } from './ColorPicker'
@@ -15,7 +15,7 @@ import { togglePin, duplicateNote, archiveNote } from '../api'
 import { getNoteColorStyle, stripHtml } from '@/lib/utils'
 import { toast } from 'sonner'
 
-export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onUpdate }) {
+export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick }) {
   const navigate = useNavigate()
   const [title, setTitle] = useState(note?.title || '')
   const [content, setContent] = useState(note?.content || '')
@@ -43,14 +43,6 @@ export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onU
     { title, content, color },
     800
   )
-
-  useEffect(() => {
-    if (!note) return
-    setTitle(note.title || '')
-    setContent(note.content || '')
-    setColor(note.color || '#ffffff')
-    setAttachments(note.note_attachments || [])
-  }, [note?.id])
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
@@ -216,16 +208,14 @@ export function NoteEditor({ note, onLockClick, onShareClick, onDeleteClick, onU
           </span>
         </div>
 
-        {attachments.length > 0 || true ? (
-          <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Attachments</p>
-            <AttachmentUploader
-              noteId={note.id}
-              attachments={attachments}
-              onAttachmentsChange={setAttachments}
-            />
-          </div>
-        ) : null}
+        <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+          <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Attachments</p>
+          <AttachmentUploader
+            noteId={note.id}
+            attachments={attachments}
+            onAttachmentsChange={setAttachments}
+          />
+        </div>
       </div>
     </div>
   )

@@ -6,12 +6,13 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import * as Popover from '@radix-ui/react-popover'
 import { db } from '@/services/offline/db'
 import { togglePin, updateNote, archiveNote } from '../api'
-import { formatRelativeTime, stripHtml, getNoteColorStyle } from '@/lib/utils'
+import { stripHtml, getNoteColorStyle } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { ColorPicker } from './ColorPicker'
 import { toast } from 'sonner'
 
 export function NoteCard({ note, onDelete, onShare }) {
+  const MotionDiv = motion.div
   const navigate = useNavigate()
   const [hovered, setHovered] = useState(false)
   const [localColor, setLocalColor] = useState(note.color || '#ffffff')
@@ -52,7 +53,7 @@ export function NoteCard({ note, onDelete, onShare }) {
   const bg = colorStyle.backgroundColor || 'var(--bg-secondary)'
 
   return (
-    <motion.div
+    <MotionDiv
       layout
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -185,6 +186,6 @@ export function NoteCard({ note, onDelete, onShare }) {
           <Trash2 className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
         </button>
       </div>
-    </motion.div>
+    </MotionDiv>
   )
 }

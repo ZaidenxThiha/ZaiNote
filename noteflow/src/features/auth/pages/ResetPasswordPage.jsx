@@ -14,7 +14,6 @@ export default function ResetPasswordPage() {
   const [otp, setOtp] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [otpVerified, setOtpVerified] = useState(false)
 
   const sendLink = async () => {
     setLoading(true)
@@ -39,7 +38,6 @@ export default function ResetPasswordPage() {
     const { valid } = await verifyOtp(email, otp)
     setLoading(false)
     if (!valid) { toast.error('Invalid or expired OTP'); return }
-    setOtpVerified(true)
     setMode('newpw')
   }
 

@@ -14,13 +14,14 @@ import { NoteCardSkeleton } from '@/components/feedback/Skeleton'
 import { EmptyState } from '@/components/feedback/EmptyState'
 
 function TrashCard({ note, onRestore, onDelete }) {
+  const MotionDiv = motion.div
   const [hovered, setHovered] = useState(false)
   const isDark = document.documentElement.classList.contains('dark')
   const colorStyle = getNoteColorStyle(note.color, isDark)
   const preview = stripHtml(note.content || '').slice(0, 200)
 
   return (
-    <motion.div
+    <MotionDiv
       layout
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -77,7 +78,7 @@ function TrashCard({ note, onRestore, onDelete }) {
           Delete forever
         </button>
       </div>
-    </motion.div>
+    </MotionDiv>
   )
 }
 
@@ -192,11 +193,11 @@ export default function TrashPage() {
             <AnimatePresence>
               {trashedNotes.map(note => (
                 <div key={note.id} className="mb-4 break-inside-avoid">
-                  <TrashCard
-                    note={note}
-                    onRestore={handleRestore}
-                    onDelete={setNoteToDelete}
-                  />
+                    <TrashCard
+                      note={note}
+                      onRestore={handleRestore}
+                      onDelete={setNoteToDelete}
+                    />
                 </div>
               ))}
             </AnimatePresence>
